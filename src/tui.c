@@ -1,6 +1,5 @@
 #pragma once
-
-#include <stdio.h>
+#include "./project.c"
 
 typedef struct TUI_Meter {
   char* name;

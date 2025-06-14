@@ -1,15 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <time.h>
-// #include "../external/miniaudio.h"
-#include "./recording.h"
-
-
+#pragma once
+#include "./project.c"
 
 int main() {
   srand(time(NULL));
-  int choice;
+  int choice = 99;
   Recording foo = {.id = 1};
   while (0 != choice) {
     printf("All the audio ✌️\n"
