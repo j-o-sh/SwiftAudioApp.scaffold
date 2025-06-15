@@ -27,7 +27,7 @@ void tui_display_meter(const TUI_Meter meter) {
   fflush(stdout);
 }
 
-void tui_clear_meter(const TUI_Meter meter) {
+void tui_clear_meter() {
   //basically we assume we still live on the meter line (as if nothing happened
   //to the output after calling display) so we need to clear the line we're on
   //or even better: clear backwards the number of characters that make up the 
@@ -38,7 +38,7 @@ void tui_clear_meter(const TUI_Meter meter) {
 }
 
 void tui_update_meter(const TUI_Meter meter) {
-  tui_clear_meter(meter);
+  tui_clear_meter();
   tui_display_meter(meter);
 }
 
