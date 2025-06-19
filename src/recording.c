@@ -97,7 +97,7 @@ Recording create_recording() {
 }
 
 int calc_buffer_size(int seconds) {
-  return 48000 * sizeof(float) * seconds;
+  return 48000 * seconds;
 }
 
 int audio_setup() {
@@ -117,8 +117,8 @@ int audio_setup() {
   }
 
   ma_device_config play_config = ma_device_config_init(ma_device_type_playback);
-  play_config.capture.format = ma_format_f32;
-  play_config.capture.channels = 1;
+  play_config.playback.format = ma_format_f32;
+  play_config.playback.channels = 1;
   play_config.sampleRate = 48000;
   play_config.dataCallback = play_callback;
   play_config.pUserData = &audio_context;
