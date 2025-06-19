@@ -10,7 +10,7 @@ int main() {
   }
 
   Recording recording = create_recording();
-  recording.bufferSize = calc_buffer_size(10);
+  recording.bufferSize = calc_buffer_size(5);
   recording.buffer = malloc(recording.bufferSize * sizeof(float));
 
   while (0 != choice) {
@@ -30,7 +30,12 @@ int main() {
 
       break;
     case 2:
-      play(recording);
+      play(&recording);
+      getchar();
+      printf("do it!\n");
+      getchar();
+      printf("...");
+
       break;
     }
   }
