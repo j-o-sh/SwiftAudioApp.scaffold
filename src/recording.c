@@ -2,6 +2,13 @@
 #include "./project.c"
 
 typedef struct {
+  ma_device recorder;
+  void* recorder_userdata;
+} AudioContext;
+
+static AudioContext audio_context;
+
+typedef struct {
   /**
    * 0 = uninitialized
    * 1 = success
@@ -22,7 +29,8 @@ void rec_callback(
   const void* input, 
   ma_uint32 frameCount) {
 
-  Recording* data = device->pUserData;
+  AudioContext* ctx = device->pUserData;
+  Recording* data = ctx->recorder_userdata;
   const float* samples = (const float*) input;
 
   unsigned int bufferSizeLeft = data->bufferSize - data->bufferDataSize;
@@ -65,23 +73,31 @@ int calc_buffer_size(int seconds) {
   return 48000 * sizeof(float) * seconds;
 }
 
-void record(Recording* record) { 
-  printf("Recording...\n"); 
-
+int audio_setup() {
   ma_device_config config = ma_device_config_init(ma_device_type_capture);
   config.capture.format = ma_format_f32;
   config.capture.channels = 1;
   config.sampleRate = 48000;
   config.dataCallback = rec_callback;
-  config.pUserData = record;
+  config.pUserData = &audio_context;
 
-  if (MA_SUCCESS != ma_device_init(NULL, &config, &record->device)) {
+  if (MA_SUCCESS != ma_device_init(NULL, &config, &audio_context.recorder)) {
     printf("‼️ device initialization failed!");
-    record->status = -1;
-    return;
+    return -1;
   }
+  return 0;
+}
 
-  if (MA_SUCCESS != ma_device_start(&record->device)) {
+void audio_teardown() {
+  ma_device_uninit(&audio_context.recorder);
+}
+
+
+void record(Recording* record) { 
+  printf("Recording...\n"); 
+
+  audio_context.recorder_userdata = record;
+  if (MA_SUCCESS != ma_device_start(&audio_context.recorder)) {
     printf("‼️ starting device failed!");
     record->status = -1;
     return;
@@ -92,5 +108,11 @@ void record(Recording* record) {
   tui_display_meter(record->meter);
 }
 
-void play(Recording rec) { printf("Playing...\n"); }
+void play(Recording rec) { 
+  printf("Playing...\n"); 
+  TUI_Meter meter = tui_create_meter("🔊");
+
+  tui_display_meter(meter);
+}
+
 

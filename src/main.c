@@ -5,6 +5,10 @@ int main() {
   srand(time(NULL));
   int choice = 99;
 
+  if (0 != audio_setup()) {
+    return -1;
+  }
+
   Recording recording = create_recording();
   recording.bufferSize = calc_buffer_size(10);
   recording.buffer = malloc(recording.bufferSize * sizeof(float));
@@ -26,10 +30,11 @@ int main() {
 
       break;
     case 2:
-      // play((Recording) { .id = 9 });
+      play(recording);
       break;
     }
   }
   
   free(recording.buffer);
+  audio_teardown();
 }
