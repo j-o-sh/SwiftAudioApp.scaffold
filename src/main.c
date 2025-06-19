@@ -7,7 +7,7 @@ int main() {
 
   Recording recording = create_recording();
   recording.bufferSize = calc_buffer_size(10);
-  recording.buffer = malloc(recording.bufferSize);
+  recording.buffer = malloc(recording.bufferSize * sizeof(float));
 
   while (0 != choice) {
     printf("All the audio ✌️\n"

@@ -28,7 +28,7 @@ void rec_callback(
   unsigned int bufferSizeLeft = data->bufferSize - data->bufferDataSize;
   unsigned int framesToWrite = frameCount < bufferSizeLeft ? frameCount : bufferSizeLeft;
 
-  printf("-- %d / %d --\n", data->bufferDataSize, data->bufferSize);
+  // printf("-- %d / %d --\n", data->bufferDataSize, data->bufferSize);
   memcpy(
     &data->buffer[data->bufferDataSize], 
     input, 
@@ -44,8 +44,10 @@ void rec_callback(
   tui_update_meter(data->meter);
 
   if (bufferSizeLeft <= framesToWrite) {
-    ma_device_uninit(device);
+    // ma_device_uninit(device);
+    ma_device_stop(device);
     data->status = 1;
+    printf("\ndone.\n");
   }
 }
 
