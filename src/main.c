@@ -1,7 +1,24 @@
 #pragma once
 #include "./project.c"
 
+
+TUI_Meter playback_meter;
+TUI_Meter record_meter;
+
+void update_playback_meter(float value) {
+  playback_meter.value = value;
+  tui_update_meter(playback_meter);
+}
+
+void update_record_meter(float value) {
+  record_meter.value = value;
+  tui_update_meter(record_meter);
+}
+
 int main() {
+  playback_meter = tui_create_meter("🔊");
+  record_meter = tui_create_meter("🎙️");
+
   srand(time(NULL));
   int choice = 99;
 
@@ -14,6 +31,7 @@ int main() {
   recording.buffer = malloc(recording.bufferSize * sizeof(float));
 
   while (0 != choice) {
+    printf("\n\n");
     printf("All the audio ✌️\n"
            "  1 - record a thing\n"
            "  2 - play the thing\n"
@@ -21,21 +39,14 @@ int main() {
     scanf("%d", &choice);
     switch (choice) {
     case 1:
-      printf("We have a buffer %d/%d\n", recording.bufferDataSize, recording.bufferSize);
-      record(&recording);
+      tui_display_meter(record_meter);
+      record(&recording, update_record_meter);
       getchar();
-      printf("do it!\n");
-      getchar();
-      printf("...");
-
       break;
     case 2:
-      play(&recording);
+      tui_display_meter(playback_meter);
+      play(&recording, update_playback_meter);
       getchar();
-      printf("do it!\n");
-      getchar();
-      printf("...");
-
       break;
     }
   }

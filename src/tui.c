@@ -3,7 +3,7 @@
 
 typedef struct TUI_Meter {
   char* name;
-  double value;
+  float value;
 } TUI_Meter;
 
 TUI_Meter tui_create_meter(char* name) {

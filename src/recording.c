@@ -10,12 +10,11 @@ typedef struct {
 typedef struct {
   ma_device recorder;
   Recording* active_recording;
-  TUI_Meter recorder_meter;
+  void (*meter)(float);
 
   ma_device player;
   unsigned int playback_position;
   Recording* active_playback;
-  TUI_Meter player_meter;
 } AudioContext;
 
 static AudioContext audio_context;
@@ -46,12 +45,10 @@ void rec_callback(
   for (unsigned int i = 0; i < frameCount; i++) {
     sum += fabsf(samples[i]);
   }
-  ctx->recorder_meter.value = sum / frameCount;
-  tui_update_meter(ctx->recorder_meter);
+  ctx->meter(sum / frameCount);
 
   if (bufferSizeLeft <= framesToWrite) {
     ma_device_stop(device);
-    printf("\ndone.\n");
   }
 }
 
@@ -84,8 +81,7 @@ void play_callback(
   for (unsigned int i = 0; i < framesToCopy; i++) { 
     sum += fabsf(out[i]); 
   }
-  ctx->player_meter.value = sum / framesToCopy;
-  tui_update_meter(ctx->player_meter);
+  ctx->meter(sum / framesToCopy);
 }
 
 Recording create_recording() {
@@ -101,9 +97,6 @@ int calc_buffer_size(int seconds) {
 }
 
 int audio_setup() {
-  audio_context.recorder_meter = tui_create_meter("🎙️");
-  audio_context.player_meter = tui_create_meter("🔊");
-
   ma_device_config rec_config = ma_device_config_init(ma_device_type_capture);
   rec_config.capture.format = ma_format_f32;
   rec_config.capture.channels = 1;
@@ -112,7 +105,6 @@ int audio_setup() {
   rec_config.pUserData = &audio_context;
 
   if (MA_SUCCESS != ma_device_init(NULL, &rec_config, &audio_context.recorder)) {
-    printf("‼️ recording device initialization failed!");
     return -1;
   }
 
@@ -124,7 +116,6 @@ int audio_setup() {
   play_config.pUserData = &audio_context;
 
   if (MA_SUCCESS != ma_device_init(NULL, &play_config, &audio_context.player)) {
-    printf("‼️ playback device initialization failed!");
     return -1;
   }
 
@@ -137,32 +128,21 @@ void audio_teardown() {
 }
 
 
-void record(Recording* record) { 
-  printf("Recording...\n"); 
-
+void record(Recording* record, void (*meter)(float)) { 
   audio_context.active_recording = record;
+  audio_context.meter = meter;
   if (MA_SUCCESS != ma_device_start(&audio_context.recorder)) {
-    printf("‼️ starting device failed!");
     return;
   }
-
-  printf("🔥 lets go!\n");
-
-  tui_display_meter(audio_context.recorder_meter);
 }
 
-void play(Recording* rec) { 
-  printf("Playing...\n"); 
-
+void play(Recording* rec, void (*meter)(float)) { 
   audio_context.playback_position = 0;
+  audio_context.meter = meter;
   audio_context.active_playback = rec;
-  tui_display_meter(audio_context.player_meter);
   if (MA_SUCCESS != ma_device_start(&audio_context.player)) {
-    printf("‼️ starting playback failed!");
     return;
   }
-
-  printf("\n\n");
 }
 
 
