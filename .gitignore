@@ -2,4 +2,7 @@
 booom
 debug
 *.dSYM
+*.o
+*.a
+
 

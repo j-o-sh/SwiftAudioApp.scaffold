@@ -1,11 +1,6 @@
 #pragma once
 #include "./project.c"
-
-typedef struct {
-  float* buffer;
-  unsigned int bufferSize;
-  unsigned int bufferDataSize;
-} Recording;
+#include "../include/recorder.h"
 
 typedef struct {
   ma_device recorder;
