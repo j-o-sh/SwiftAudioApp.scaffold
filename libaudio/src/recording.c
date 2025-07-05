@@ -1,6 +1,6 @@
 #pragma once
 #include "./project.c"
-#include "../include/recorder.h"
+#include "../recorder.h"
 
 typedef struct {
   ma_device recorder;
