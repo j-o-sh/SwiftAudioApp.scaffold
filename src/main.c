@@ -16,6 +16,13 @@ void update_record_meter(float value) {
 }
 
 int main() {
+  #ifdef DEBUG
+  printf("Waiting for debugger... PID is %d\n", getpid());
+  // raise(SIGSTOP);
+  printf("When debugger attached, press enter.\n\n");
+  getchar();
+  #endif
+
   playback_meter = tui_create_meter("🔊");
   record_meter = tui_create_meter("🎙️");
 
