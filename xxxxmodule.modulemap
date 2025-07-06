@@ -1,6 +1,0 @@
-module CAudio [system] {
-    header "audio.h"
-    link "audio"
-    export *
-}
-
