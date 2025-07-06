@@ -1,7 +1,10 @@
 format_version = 2
 
 [apps.appaudio]
-identifier = 'com.example.appaudio'
+identifier = 'toy-forge.appaudio'
 product = 'appaudio'
 version = '0.1.0'
+
+[apps.appaudio.plist]
+NSMicrophoneUsageDescription = "Recorder app want to record things"
 
