@@ -13,9 +13,16 @@
 #include "audio.h"
 
 typedef struct {
+  float* buffer;
+  unsigned int bufferSize;
+  unsigned int bufferDataSize;
+} Recording;
+
+
+typedef struct {
   ma_device recorder;
   Recording* active_recording;
-  void (*meter)(float);
+  // void (*meter)(float);
 
   ma_device player;
   unsigned int playback_position;
@@ -46,11 +53,11 @@ void rec_callback(
   );
   ctx->active_recording->bufferDataSize += framesToWrite;
 
-  float sum = 0.0f;
-  for (unsigned int i = 0; i < frameCount; i++) {
-    sum += fabsf(samples[i]);
-  }
-  ctx->meter(sum / frameCount);
+  // float sum = 0.0f;
+  // for (unsigned int i = 0; i < frameCount; i++) {
+  //   sum += fabsf(samples[i]);
+  // }
+  // ctx->meter(sum / frameCount);
 
   if (bufferSizeLeft <= framesToWrite) {
     ma_device_stop(device);
@@ -82,24 +89,20 @@ void play_callback(
     ma_device_stop(device);
   }
 
-  float sum = 0.0f;
-  for (unsigned int i = 0; i < framesToCopy; i++) { 
-    sum += fabsf(out[i]); 
-  }
-  ctx->meter(sum / framesToCopy);
-}
-
-Recording create_recording() {
-  Recording record = {
-    .bufferDataSize = 0,
-  };
-  
-  return record;
+  // float sum = 0.0f;
+  // for (unsigned int i = 0; i < framesToCopy; i++) { 
+  //   sum += fabsf(out[i]); 
+  // }
+  // ctx->meter(sum / framesToCopy);
 }
 
 int calc_buffer_size(int seconds) {
   return 48000 * seconds;
 }
+
+
+/******************** [external api start] ************************************/
+
 
 int audio_setup() {
   ma_device_config rec_config = ma_device_config_init(ma_device_type_capture);
@@ -127,26 +130,40 @@ int audio_setup() {
   return 0;
 }
 
-void audio_teardown() {
-  ma_device_uninit(&audio_context.recorder);
-  ma_device_uninit(&audio_context.player);
+Recording rec;
+
+void create_recording(unsigned int seconds) {
+  rec = (Recording) {
+    .bufferDataSize = 0,
+    .bufferSize = calc_buffer_size(seconds),
+  };
+  rec.buffer = malloc(rec.bufferSize * sizeof(float));
 }
 
-
-void record(Recording* record, void (*meter)(float)) { 
-  audio_context.active_recording = record;
-  audio_context.meter = meter;
+// void record(void (*meter)(float)) { 
+void record() { 
+  audio_context.active_recording = &rec;
+  // audio_context.meter = meter;
   if (MA_SUCCESS != ma_device_start(&audio_context.recorder)) {
     return;
   }
 }
 
-void play(Recording* rec, void (*meter)(float)) { 
+// void play(void (*meter)(float)) { 
+void play() { 
   audio_context.playback_position = 0;
-  audio_context.meter = meter;
-  audio_context.active_playback = rec;
+  // audio_context.meter = meter;
+  audio_context.active_playback = &rec;
   if (MA_SUCCESS != ma_device_start(&audio_context.player)) {
     return;
+  }
+}
+
+void audio_teardown() {
+  ma_device_uninit(&audio_context.recorder);
+  ma_device_uninit(&audio_context.player);
+  if (rec.buffer) {
+    free(rec.buffer);
   }
 }
 
