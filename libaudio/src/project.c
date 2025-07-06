@@ -9,6 +9,7 @@
 
 #define MINIAUDIO_IMPLEMENTATION
 #include "../external/miniaudio.h"
+#include "../audio.h"
 #include "./tui.c"
 #include "./recording.c"
 

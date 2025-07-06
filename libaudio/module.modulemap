@@ -1,0 +1,6 @@
+module Recorder [system] {
+    header "audio.h"
+    link "audio"
+    export *
+}
+

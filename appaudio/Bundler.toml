@@ -1,0 +1,7 @@
+format_version = 2
+
+[apps.appaudio]
+identifier = 'com.example.appaudio'
+product = 'appaudio'
+version = '0.1.0'
+

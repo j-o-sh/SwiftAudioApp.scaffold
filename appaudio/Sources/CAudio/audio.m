@@ -1,5 +1,16 @@
-#pragma once
-#include "./project.c"
+#define MINIAUDIO_IMPLEMENTATION
+#define MA_NO_RUNTIME_LINKING
+
+
+#include <string.h>
+#include <unistd.h> // for getpid()
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
+#include <math.h>
+#include "miniaudio.h"
+#include "audio.h"
 
 typedef struct {
   ma_device recorder;
