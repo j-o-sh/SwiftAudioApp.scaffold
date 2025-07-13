@@ -44,58 +44,51 @@ void my_log_callback(void* pUserData, ma_uint32 level, const char* pMessage) {
     printf("[miniaudio][%s] %s\n", levelStr, pMessage);
 }
 
-void rec_callback(
+void duplex_callback(
   ma_device* device, 
   void* output, 
   const void* input, 
-  ma_uint32 frameCount) {
-  (void)output;
-
+  ma_uint32 frameCount
+) {
   AudioContext* ctx = device->pUserData;
-  const float* samples = (const float*) input;
+  if (ctx->active_recording) {
+    const float* samples = (const float*) input;
 
-  unsigned int bufferSizeLeft = 
-    ctx->active_recording->bufferSize - ctx->active_recording->bufferDataSize;
-  unsigned int framesToWrite = 
-    frameCount < bufferSizeLeft ? frameCount : bufferSizeLeft;
+    unsigned int bufferSizeLeft = 
+      ctx->active_recording->bufferSize - ctx->active_recording->bufferDataSize;
+    unsigned int framesToWrite = 
+      frameCount < bufferSizeLeft ? frameCount : bufferSizeLeft;
 
-  memcpy(
-    &ctx->active_recording->buffer[ctx->active_recording->bufferDataSize], 
-    input, 
-    framesToWrite * sizeof(float)
-  );
-  ctx->active_recording->bufferDataSize += framesToWrite;
+    memcpy(
+      &ctx->active_recording->buffer[ctx->active_recording->bufferDataSize], 
+      input, 
+      framesToWrite * sizeof(float)
+    );
+    ctx->active_recording->bufferDataSize += framesToWrite;
 
-  if (bufferSizeLeft <= framesToWrite) {
-    ma_device_stop(device);
-  }
-}
-
-void play_callback(
-  ma_device* device, 
-  void* output, 
-  const void* input, 
-  ma_uint32 frameCount) {
-  (void)input;
-
-  AudioContext* ctx = device->pUserData;
-  Recording* rec = ctx->active_playback;
-  float* out = (float*) output;
-
-  unsigned int framesLeft = rec->bufferDataSize - ctx->playback_position;
-  unsigned int framesToCopy = frameCount <= framesLeft ? frameCount : framesLeft;
-
-  memcpy(out, &rec->buffer[ctx->playback_position], framesToCopy * sizeof(float));
-  ctx->playback_position += framesToCopy;
-
-  if (framesToCopy < frameCount) {
-    memset(out + framesToCopy, 0, (frameCount - framesToCopy) * sizeof(float));
+    if (bufferSizeLeft <= framesToWrite) {
+      ctx->active_recording = NULL;
+    }
   }
 
-  if (ctx->playback_position >= rec->bufferDataSize) {
-    ma_device_stop(device);
-  }
+  if (ctx->active_playback) {
+    Recording* rec = ctx->active_playback;
+    float* out = (float*) output;
 
+    unsigned int framesLeft = rec->bufferDataSize - ctx->playback_position;
+    unsigned int framesToCopy = frameCount <= framesLeft ? frameCount : framesLeft;
+
+    memcpy(out, &rec->buffer[ctx->playback_position], framesToCopy * sizeof(float));
+    ctx->playback_position += framesToCopy;
+
+    if (framesToCopy < frameCount) {
+      memset(out + framesToCopy, 0, (frameCount - framesToCopy) * sizeof(float));
+    }
+
+    if (ctx->playback_position >= rec->bufferDataSize) {
+      ctx->active_playback = NULL;
+    }
+  }
 }
 
 int calc_buffer_size(int seconds) {
@@ -124,24 +117,13 @@ int audio_setup() {
   config.playback.channels = 1;
   config.sampleRate = 48000;
 
-  config.dataCallback = rec_callback;
+  config.dataCallback = duplex_callback;
 
   config.pUserData = &audio_context;
 
-  if (MA_SUCCESS != ma_device_init(NULL, &config, &audio_context.recorder)) {
+  if (MA_SUCCESS != ma_device_init(NULL, &config, &audio_context.device)) {
     return -1;
   }
-
-  // ma_device_config play_config = ma_device_config_init(ma_device_type_playback);
-  // play_config.playback.format = ma_format_f32;
-  // play_config.playback.channels = 1;
-  // play_config.sampleRate = 48000;
-  // play_config.dataCallback = play_callback;
-  // play_config.pUserData = &audio_context;
-  //
-  // if (MA_SUCCESS != ma_device_init(NULL, &play_config, &audio_context.player)) {
-  //   return -1;
-  // }
 
   return 0;
 }
@@ -157,33 +139,31 @@ void create_recording(unsigned int seconds) {
   printf("🔊 recording created with size of %d for %d seconds\n", rec.bufferSize, seconds);
 }
 
-// void record(void (*meter)(float)) { 
 void record() { 
   printf("🔊 starting to record...\n");
+  audio_context.active_playback = NULL;
   audio_context.active_recording = &rec;
-  // audio_context.meter = meter;
-  unsigned int result = ma_device_start(&audio_context.recorder);
+  unsigned int result = ma_device_start(&audio_context.device);
   if (MA_SUCCESS != result) {
     printf("⚠️ starting device failed! %d\n", result);
     return;
   }
 }
 
-// void play(void (*meter)(float)) { 
 void play() { 
   printf("🔊 starting playback...\n");
   audio_context.playback_position = 0;
-  // audio_context.meter = meter;
   audio_context.active_playback = &rec;
-  if (MA_SUCCESS != ma_device_start(&audio_context.player)) {
+  audio_context.active_recording = NULL;
+  if (MA_SUCCESS != ma_device_start(&audio_context.device)) {
     printf("⚠️ starting device failed!\n");
     return;
   }
 }
 
 void audio_teardown() {
-  ma_device_uninit(&audio_context.recorder);
-  ma_device_uninit(&audio_context.player);
+  ma_device_stop(&audio_context.device);
+  ma_device_uninit(&audio_context.device);
   if (rec.buffer) {
     free(rec.buffer);
   }
