@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "appaudio",
-    platforms: [.iOS(.v14)],
+    platforms: [.iOS(.v14), .macOS(.v14)],
     products: [
         .executable(name: "appaudio", targets: ["appaudio"])
     ],

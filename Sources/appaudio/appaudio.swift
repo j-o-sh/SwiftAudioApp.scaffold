@@ -4,6 +4,7 @@ import CAudio
 
 final class Livecycle: ObservableObject {
 init() { 
+    #if os(iOS)
     let session = AVAudioSession.sharedInstance()
     do {
       try session.setCategory(.playAndRecord, options: [.defaultToSpeaker])
@@ -25,6 +26,7 @@ init() {
     } catch {
       print("❌ Failed to activate audio session: \(error)")
     }
+    #endif
   }
   deinit { audio_teardown() }
 }

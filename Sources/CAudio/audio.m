@@ -106,7 +106,6 @@ ma_log_callback logCallback;
 int audio_setup() {
   ma_log_init(NULL, &logger);
   logCallback = ma_log_callback_init(my_log_callback, NULL);
-  ma_log_init(NULL, &logger);
   ma_log_register_callback(&logger, logCallback);
 
 
