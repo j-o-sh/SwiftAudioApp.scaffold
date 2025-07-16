@@ -4,6 +4,8 @@ format_version = 2
 identifier = 'toy-forge.appaudio'
 product = 'appaudio'
 version = '0.1.0'
+icon = 'icon.png'
+category = 'public.app-category.music'
 
 [apps.appaudio.plist]
 NSMicrophoneUsageDescription = "Recorder app want to record things"
